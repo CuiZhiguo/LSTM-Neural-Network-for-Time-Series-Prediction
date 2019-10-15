@@ -25,7 +25,7 @@ def plot_results_multiple(predicted_data, true_data, prediction_len):
     fig = plt.figure(facecolor='white')
     ax = fig.add_subplot(111)
     ax.plot(true_data, label='True Data')
-	# Pad the list of predictions to shift it in the graph to it's correct start
+    # Pad the list of predictions to shift it in the graph to it's correct start
     for i, data in enumerate(predicted_data):
         padding = [None for p in range(i * prediction_len)]
         plt.plot(padding + data, label='Prediction')
@@ -45,21 +45,29 @@ def main():
 
     model = Model()
     model.build_model(configs)
+    # 从已经保存的模型中加载模型，此时不需要再进行模型训练：即不需要再执行model.train()部分
+    # model.load_model(r'saved_models/15102019-155115-e2.h5')
+
+
     x, y = data.get_train_data(
         seq_len=configs['data']['sequence_length'],
         normalise=configs['data']['normalise']
     )
+    # print('x的shape是：{0}'.format(x.shape))  # (3942, 49, 2)
+    # print('y的shape是：{0}'.format(y.shape))  # (3942, 1)
 
-    '''
-	# in-memory training
-	model.train(
+
+    # in-memory training
+    model.train(
 		x,
 		y,
 		epochs = configs['training']['epochs'],
 		batch_size = configs['training']['batch_size'],
 		save_dir = configs['model']['save_dir']
-	)
-	'''
+    )
+
+
+    '''
     # out-of memory generative training
     steps_per_epoch = math.ceil((data.len_train - configs['data']['sequence_length']) / configs['training']['batch_size'])
     model.train_generator(
@@ -73,18 +81,20 @@ def main():
         steps_per_epoch=steps_per_epoch,
         save_dir=configs['model']['save_dir']
     )
+    '''
+
 
     x_test, y_test = data.get_test_data(
         seq_len=configs['data']['sequence_length'],
         normalise=configs['data']['normalise']
     )
 
-    predictions = model.predict_sequences_multiple(x_test, configs['data']['sequence_length'], configs['data']['sequence_length'])
+    # predictions = model.predict_sequences_multiple(x_test, configs['data']['sequence_length'], configs['data']['sequence_length'])
     # predictions = model.predict_sequence_full(x_test, configs['data']['sequence_length'])
-    # predictions = model.predict_point_by_point(x_test)
+    predictions = model.predict_point_by_point(x_test)
 
-    plot_results_multiple(predictions, y_test, configs['data']['sequence_length'])
-    # plot_results(predictions, y_test)
+    # plot_results_multiple(predictions, y_test, configs['data']['sequence_length'])
+    plot_results(predictions, y_test)
 
 
 if __name__ == '__main__':
